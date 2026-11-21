@@ -1,0 +1,217 @@
+PRIVACY LAWS RELATED TO OUR PROBLEM STATEMENT
+Personal Data Footprint Auditor
+Last checked: 21 November 2026
+
+NOTE: This is general information to help us understand and pitch the
+project. It is not legal advice. Laws change often, so check the official
+text before relying on any detail.
+
+
+1. WHY THESE LAWS MATTER TO OUR TOOL
+------------------------------------
+Our tool works because of one idea in modern privacy law: people have the
+right to get a copy of the data a company holds about them.
+
+That right is the reason "Download your data" buttons exist (Google Takeout,
+Instagram download, Spotify export). Our tool takes those downloads, reads
+them on the user's own device, and makes them understandable.
+
+Three rights matter most to us:
+  - Right of access:        "Show me what you hold about me."
+  - Right of portability:   "Give me my data in a file I can reuse."
+  - Right of deletion:      "Remove my data."
+Our tool helps people use all three, because the report tells them what to
+delete and how.
+
+
+2. QUICK COMPARISON TABLE
+-------------------------
+Law                      Where        Access   Portability   Deletion
+-----------------------  -----------  -------  ------------  --------
+GDPR                     EU/EEA       Yes      Yes           Yes
+UK GDPR + DPA 2018       UK           Yes      Yes           Yes
+DPDP Act 2023            India        Yes      Not clearly   Yes
+CCPA / CPRA              California   Yes      Partly        Yes
+Other US state laws      US states    Varies   Varies        Varies
+LGPD                     Brazil       Yes      Yes           Yes
+PIPEDA                   Canada       Yes      Not in law    Limited
+Privacy Act 1988         Australia    Yes      No            Limited
+PIPL                     China        Yes      Yes (limits)  Yes
+Malaysia PDPA            Malaysia     Yes      Yes (2025)    Varies
+POPIA                    South Africa Yes      Not central   Yes
+
+Treat this table as a starting point. "Partly" and "Varies" mean the
+details differ by law or state and should be checked.
+
+
+3. THE LAWS, ONE BY ONE
+-----------------------
+
+3.1 GDPR - European Union (in force since 25 May 2018)
+  What it is:  The most influential privacy law in the world. It applies to
+               any organisation handling data of people in the EU, wherever
+               the organisation is based.
+  Key rights:  Access (Article 15), correction, deletion, restriction,
+               objection, and portability (Article 20).
+  Portability: The person can receive the data they provided, in a
+               structured, commonly used, machine-readable format, and can
+               pass it to another service.
+  Breaches:    Authorities must normally be told within 72 hours.
+  Penalties:   Up to EUR 20 million or 4% of worldwide yearly revenue,
+               whichever is higher.
+  Link to us:  GDPR is the reason big platforms give downloads at all. It
+               is the benchmark many other laws copy.
+
+3.2 UK GDPR and Data Protection Act 2018 - United Kingdom
+  What it is:  The UK's version of GDPR after Brexit. Rights are very
+               similar to the EU's.
+  Regulator:   The Information Commissioner's Office (ICO).
+  Link to us:  Same rights, so the same tool works for UK users.
+
+3.3 DPDP Act 2023 and DPDP Rules 2025 - India
+  What it is:  India's first full data protection law.
+  Key terms:   "Data Principal" = the person. "Data Fiduciary" = the
+               company holding the data. Data Protection Board of India
+               handles complaints.
+  Rights:      Get information about processing, correction and erasure,
+               grievance redressal, and nominating someone to act for you.
+  Penalties:   Up to INR 250 crore for serious violations.
+  Status:      Phased rollout. The Rules were notified on 13 November
+               2025. Rules on Consent Managers start in November 2026. The
+               main duties for companies (notice, consent, safeguards)
+               start on 13 May 2027.
+  Limits:      Critics point to wide exemptions for government bodies.
+               The Act is built around consent and does not spell out a
+               portability right in the way GDPR does.
+  Link to us:  Our home market. Most Indian users do not yet know their
+               rights, which is exactly the gap our tool addresses.
+
+3.4 CCPA / CPRA - California, USA
+  What it is:  California's privacy law. Gives residents rights to know
+               what is collected, to delete, to correct, and to opt out of
+               the sale or sharing of their data.
+  Also covers: Limiting use of sensitive personal information.
+  Link to us:  Shows how privacy rights work in a market with no single
+               national law.
+
+3.5 Other US state laws
+  What it is:  The US has no single national privacy law. Sector laws
+               (such as HIPAA for health) and many state laws fill the
+               space. Reports in 2026 count more than 20 state laws,
+               including Virginia (VCDPA) and Colorado (CPA).
+  Detail:      Many state laws copy GDPR's wording on portability but not
+               exactly. Some limit portability to data the consumer
+               provided.
+  Link to us:  Rules differ state by state, so a simple, local tool that
+               works from any export is useful.
+
+3.6 LGPD - Brazil
+  What it is:  Brazil's general data protection law, closely modelled on
+               GDPR.
+  Rights:      Access, correction, portability, deletion, and clear
+               consent.
+  Detail:      One older comparison noted a 15-day response time to
+               requests, shorter than GDPR's usual one month. Check the
+               current text before quoting this.
+  Link to us:  Another large market with portability built in.
+
+3.7 PIPEDA - Canada
+  What it is:  Canada's federal private-sector privacy law.
+  Rights:      Access and correction.
+  Portability: Not part of the current law. Canada has been studying a
+               portability approach.
+  Link to us:  Users in Canada can ask for their data, but portability is
+               still under discussion.
+
+3.8 Privacy Act 1988 - Australia
+  What it is:  Australia's main privacy law.
+  Rights:      Access and correction (Australian Privacy Principles 12
+               and 13).
+  Portability: No general portability right. Australia has a separate
+               Consumer Data Right (CDR) that covers specific sectors, and
+               it is being reset and expanded.
+  Link to us:  Shows a model where portability comes from sector rules.
+
+3.9 PIPL - China
+  What it is:  China's personal information protection law.
+  Portability: Includes a portability right with conditions, such as
+               verifying the person's identity and having a suitable legal
+               basis for the processing.
+
+3.10 Malaysia PDPA
+  Portability: A formal right to data portability came into force on
+               1 June 2025 as part of the third phase of changes. It
+               depends on technical feasibility and compatible formats.
+
+3.11 POPIA - South Africa, and others
+  What it is:  South Africa's data protection law with access, correction
+               and deletion rights. Singapore (PDPA), South Korea (PIPA)
+               and Japan (APPI) also have personal data laws. South Korea
+               has consulted on broader portability.
+
+
+4. NEWER RULES THAT GO BEYOND GDPR PORTABILITY
+----------------------------------------------
+  - EU Digital Markets Act (DMA): Pushes large "gatekeeper" platforms to
+    give stronger data portability, built on competition goals rather than
+    pure privacy.
+  - EU Data Act: Adds rules on access to data generated by connected
+    products and services.
+  - US ACCESS Act (proposed bill): A competition-focused portability
+    proposal.
+  Link to us: The trend is more and easier data export. That means more
+  raw data landing in people's hands, which makes a tool like ours more
+  useful over time.
+
+
+5. THE GAP THAT OUR PROJECT FILLS
+---------------------------------
+a) Rights exist but people cannot use them.
+   Laws give access and portability, but exports arrive as ZIP files full
+   of JSON that normal people cannot read.
+
+b) Inferred data is a grey area.
+   Research on US state laws notes that portability often covers data the
+   person provided, and it is unclear whether it covers inferences the
+   company made about them (for example, "interested in loans").
+   Access rights are generally broader than portability rights.
+   This is why our "what they guessed about you" section is important:
+   it shows people data they may never have seen.
+
+c) No single view across companies.
+   Each platform shows only its own data. Our tool combines them.
+
+d) Privacy needs to be provable.
+   Many "checker" tools ask users to upload their data. Ours reads the ZIP
+   on the user's device, so the user does not have to trust another
+   company.
+
+
+6. HOW TO USE THIS IN THE PITCH
+-------------------------------
+  - One line: "Laws like GDPR and India's DPDP Act gave people the right to
+    their data. We make that right usable."
+  - Point out that more than one country now has these rights, so the
+    problem is global, not only Indian.
+  - Be honest about timing: India's main DPDP duties start on 13 May 2027,
+    so platform settings are the fastest protection today.
+  - Mention the future feature: generate a ready-to-send access or
+    deletion request under the user's local law.
+  - Do not claim to give legal advice. The tool explains data and suggests
+    steps; it is not a lawyer.
+
+
+7. SOURCES USED
+---------------
+  - Law-firm and news summaries of India's DPDP Rules 2025 and the phased
+    timeline (AZB & Partners, Hogan Lovells, HSA Advocates, King Stubb &
+    Kasiva).
+  - Data Transfer Initiative reports on global data portability (2023 and
+    2025).
+  - Comparative research on privacy laws (arXiv study of portability
+    across GDPR, PIPEDA, CCPA and the Australian Privacy Act).
+  - Overviews of privacy laws in 2026 (Usercentrics) and a 2020 LGPD vs
+    GDPR comparison (Carlton Fields).
+  Some details above (for example, exact fines for non-EU laws and which US
+  states have passed laws) come from general knowledge and should be
+  checked against official government or regulator websites before use.
