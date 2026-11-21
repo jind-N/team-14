@@ -310,6 +310,20 @@ def show_archive():
         else:
             st.download_button("Save local PDF report", pdf, "heldby-report.pdf", "application/pdf")
 
+def photo_tags(im):
+    ex = im.getexif()
+    gps = ex.get_ifd(34853)
+    camera = ex.get_ifd(34665)
+    tags = []
+    if 2 in gps and 4 in gps:
+        tags.append("Location coordinates")
+    if ex.get(271) or ex.get(272):
+        tags.append("Camera or phone model")
+    if ex.get(306) or camera.get(36867) or camera.get(36868):
+        tags.append("Date or time")
+    return tags
+
+
 def show_image():
     photo = st.file_uploader("Choose a JPEG photo", type=["jpg", "jpeg"],
                              key=f"photo_{S.generation}")
@@ -321,28 +335,40 @@ def show_image():
         with Image.open(photo) as im:
             if im.format != "JPEG" or im.width * im.height > 16_000_000:
                 raise ValueError("Unsupported image")
-            ex = im.getexif()
-            gps = ex.get_ifd(34853) if 34853 in ex else {}
-            camera = ex.get_ifd(34665) if 34665 in ex else {}
-            tags = []
-            if 2 in gps and 4 in gps:
-                tags.append("Location coordinates")
-            if ex.get(271) or ex.get(272):
-                tags.append("Camera or phone model information")
-            if ex.get(306) or camera.get(36867) or camera.get(36868):
-                tags.append("Date or time information")
-            st.write("**Found:** " + (", ".join(tags) if tags else "None of the checked tags."))
-            st.caption("Source: this photo's EXIF fields. This does not inspect text in the picture.")
+            before = photo_tags(im)
             pixels = ImageOps.exif_transpose(im).convert("RGB")
             clean = Image.new("RGB", pixels.size)
             clean.paste(pixels)
             out = io.BytesIO()
             clean.save(out, "JPEG", quality=92)
-        st.write("**What you can do:** Share a new copy without the original metadata. "
-                 "Re-saving can slightly change image quality. Your original stays as it is.")
-        st.download_button("Save cleaned copy", out.getvalue(), "heldby-clean.jpg", "image/jpeg")
-    except (OSError, ValueError, TypeError, KeyError, SyntaxError, Image.DecompressionBombError):
+        with Image.open(io.BytesIO(out.getvalue())) as copy:
+            after = photo_tags(copy)
+    except (OSError, ValueError, TypeError, KeyError, SyntaxError,
+            Image.DecompressionBombError):
         st.warning("Could not read this photo. Try a JPEG of 16 megapixels or less.")
+        return
+
+    st.subheader("1. Before: your original photo")
+    if before:
+        for tag in before:
+            st.write("⚠ Found: " + tag)
+    else:
+        st.write("None of the checked hidden tags were found.")
+    st.caption("We checked hidden tags only, not text visible in the picture.")
+
+    st.subheader("2. The fix: a cleaned copy")
+    st.write("HeldBy made a new copy from the picture only, without the hidden tags. "
+             "Your original file is not changed. Image quality may change slightly.")
+    st.download_button("Save cleaned copy", out.getvalue(), "heldby-clean.jpg", "image/jpeg")
+
+    st.subheader("3. After: we rechecked the copy")
+    if after:
+        st.warning("Still found in the copy: " + ", ".join(after))
+    else:
+        st.success("✔ Verified: location, camera, and date tags were not found "
+                   "in the cleaned copy.")
+    st.caption("Want proof? Save the cleaned copy and choose it here again.")
+
 
 class MockLoanAdapter:
     def report(self):
