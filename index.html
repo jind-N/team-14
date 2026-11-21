@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Footprint Auditor</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 16px; color: #1f2430; }
+  h1 { font-size: 24px; margin-bottom: 4px; }
+  h2 { font-size: 18px; margin: 18px 0 6px; }
+  .sub { color: #5b6270; margin-top: 0; }
+  #drop { border: 2px dashed #8a93a6; border-radius: 12px; padding: 36px; text-align: center; cursor: pointer; }
+  #drop.over { background: #eef3ff; border-color: #3b6fe0; }
+  .badge { display: inline-block; background: #e6f4ea; color: #1e6b34; border-radius: 6px; padding: 2px 8px; font-size: 13px; }
+  .card { border: 1px solid #d8dce5; border-radius: 10px; padding: 14px 16px; margin-top: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td, th { text-align: left; padding: 6px 4px; border-bottom: 1px solid #eceef3; }
+  button { cursor: pointer; }
+  pre { background: #f5f6f9; padding: 10px; border-radius: 8px; overflow: auto; max-height: 220px; font-size: 12px; }
+  .err { color: #b3261e; }
+  .note { color: #5b6270; font-size: 13px; }
+  canvas { width: 100%; border: 1px solid #d8dce5; border-radius: 8px; background: #fafbfd; }
+  .kv { display: flex; gap: 24px; flex-wrap: wrap; margin: 6px 0; }
+  .kv div { min-width: 200px; }
+  .big { font-size: 15px; font-weight: 600; }
+  details { margin-top: 10px; }
+</style>
+</head>
+<body>
+  <h1>Data Footprint Auditor</h1>
+  <p class="sub">Drop a data export ZIP. Everything is read on this computer. <span class="badge">No uploads, no network</span></p>
+
+  <div id="drop">Drop a ZIP here, or click to choose one
+    <input id="file" type="file" accept=".zip" multiple hidden>
+  </div>
+
+  <div id="out"></div>
+
+  <script src="zipreader.js"></script>
+  <script src="parsers.js"></script>
+  <script>
+    const drop = document.getElementById('drop');
+    const input = document.getElementById('file');
+    const out = document.getElementById('out');
+
+    drop.onclick = () => input.click();
+    input.onchange = () => handle(input.files);
+    drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
+    drop.ondragleave = () => drop.classList.remove('over');
+    drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); handle(e.dataTransfer.files); };
+
+    async function handle(files) {
+      out.innerHTML = '';
+      for (const f of files) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        out.appendChild(card);
+        try {
+          const entries = await readZip(await f.arrayBuffer());
+          const jsons = entries.filter(e => e.name.toLowerCase().endsWith('.json'));
+          card.innerHTML = '<strong>' + esc(f.name) + '</strong><br>' +
+            entries.length + ' files inside, ' + jsons.length + ' are JSON.' +
+            '<details><summary>Show files</summary><table><tr><th>File</th><th>Size</th><th></th></tr>' +
+            entries.map((e, i) => '<tr><td>' + esc(e.name) + '</td><td>' + Math.round(e.size / 1024 * 10) / 10 +
+              ' KB</td><td>' + (e.name.toLowerCase().endsWith('.json') ? '<button data-i="' + i + '">Preview</button>' : '') +
+              '</td></tr>').join('') + '</table><pre hidden></pre></details><div class="panel"></div>';
+          const pre = card.querySelector('pre');
+          card.querySelectorAll('button').forEach(b => b.onclick = async () => {
+            const text = await entries[+b.dataset.i].text();
+            pre.hidden = false;
+            pre.textContent = text.slice(0, 1200) + (text.length > 1200 ? '\n...' : '');
+          });
+          if (entries.some(e => /Records\.json$|MyActivity\.json$|Semantic Location History|(Timeline|location-history)\.json$/i.test(e.name))) {
+            renderGoogle(card.querySelector('.panel'), entries);
+          }
+        } catch (err) {
+          card.innerHTML = '<strong>' + esc(f.name) + '</strong><div class="err">' + esc(err.message) + '</div>';
+        }
+      }
+    }
+
+    async function renderGoogle(panel, entries) {
+      const defaultTz = -new Date().getTimezoneOffset();
+      panel.innerHTML = '<h2>Google: what it knows about you</h2>' +
+        '<p class="note">Timezone offset from UTC, in minutes (India = 330): ' +
+        '<input id="tz" type="number" value="' + defaultTz + '" style="width:80px"> ' +
+        '<button id="redo">Recalculate</button></p><div id="g"></div>';
+      const run = async () => {
+        const tz = +panel.querySelector('#tz').value;
+        const r = await parseGoogle(entries, { tzOffsetMin: tz });
+        const g = panel.querySelector('#g');
+        const fmt = p => p ? p.lat.toFixed(4) + ', ' + p.lng.toFixed(4) + ' (' + Math.round(p.share * 100) + '% of matching points)' : 'not found';
+        g.innerHTML =
+          (r.notes.length ? '<p class="note">' + r.notes.map(esc).join('<br>') + '</p>' : '') +
+          (r.stats.points ?
+            '<div class="kv"><div><div class="note">Location points</div><div class="big">' + r.stats.points + '</div><div class="note">' + r.stats.from + ' to ' + r.stats.to + '</div></div>' +
+            '<div><div class="note">Likely home (night-time)</div><div class="big">' + fmt(r.home) + '</div></div>' +
+            '<div><div class="note">Likely work (weekday daytime)</div><div class="big">' + fmt(r.work) + '</div></div></div>' +
+            '<canvas width="1280" height="760"></canvas>' +
+            '<p class="note">Map drawn from the points only, so it works offline. Red = home guess, blue = work guess. Place names would need an online lookup, which this tool avoids.</p>' : '') +
+          (r.topSearches.length ? '<h2>Top searches</h2><table>' + r.topSearches.map(s => '<tr><td>' + esc(s[0]) + '</td><td>' + s[1] + ' times</td></tr>').join('') + '</table>' : '') +
+          '<p class="note">' + r.items.length + ' items added in the common format (platform, category, item, time, sensitivity).</p>';
+        if (r.stats.points) drawMap(g.querySelector('canvas'), r);
+      };
+      panel.querySelector('#redo').onclick = run;
+      run();
+    }
+
+    function drawMap(cv, r) {
+      const ctx = cv.getContext('2d');
+      const W = cv.width, H = cv.height, pad = 60;
+      const lats = r.points.map(p => p.lat), lngs = r.points.map(p => p.lng);
+      const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+      const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+      const k = Math.cos(((minLat + maxLat) / 2) * Math.PI / 180);
+      const spanX = Math.max((maxLng - minLng) * k, 1e-6), spanY = Math.max(maxLat - minLat, 1e-6);
+      const s = Math.min((W - 2 * pad) / spanX, (H - 2 * pad) / spanY);
+      const ox = (W - spanX * s) / 2, oy = (H - spanY * s) / 2;
+      const X = lng => ox + (lng - minLng) * k * s, Y = lat => H - (oy + (lat - minLat) * s);
+      ctx.fillStyle = 'rgba(90,100,120,0.25)';
+      for (const p of r.points) { ctx.beginPath(); ctx.arc(X(p.lng), Y(p.lat), 4, 0, 7); ctx.fill(); }
+      const mark = (p, color, label) => {
+        if (!p) return;
+        ctx.fillStyle = color; ctx.beginPath(); ctx.arc(X(p.lng), Y(p.lat), 14, 0, 7); ctx.fill();
+        ctx.fillStyle = '#1f2430'; ctx.font = '600 28px system-ui, sans-serif';
+        ctx.fillText(label, X(p.lng) + 22, Y(p.lat) + 9);
+      };
+      mark(r.home, '#d93025', 'Home');
+      mark(r.work, '#1a56db', 'Work');
+    }
+
+    function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+  </script>
+</body>
+</html>

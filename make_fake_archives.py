@@ -20,6 +20,13 @@ DAYS = 60
 END = datetime(2026, 11, 20, 23, 0, tzinfo=timezone.utc)
 START = END - timedelta(days=DAYS)
 
+IST = timedelta(hours=5, minutes=30)  # the persona lives in India; the export stores UTC
+
+
+def utc(local_dt):
+    return local_dt - IST
+
+
 HOME = (26.9124, 75.7873, "Home")
 WORK = (26.8505, 75.8043, "Work")
 GYM = (26.8890, 75.8100, "Gym")
@@ -73,7 +80,7 @@ def google_zip():
                     "longitudeE7": int(lng * 1e7),
                     "accuracy": rng.choice([10, 15, 20, 35, 65]),
                     "source": rng.choice(["GPS", "WIFI", "CELL"]),
-                    "timestamp": iso(t),
+                    "timestamp": iso(utc(t)),
                 })
         key = (day.year, day.strftime("%B").upper())
         visits_by_month.setdefault(key, [])
@@ -86,7 +93,7 @@ def google_zip():
                         "latitudeE7": int(WORK[0] * 1e7), "longitudeE7": int(WORK[1] * 1e7),
                         "placeId": "FAKE_PLACE_WORK", "name": "Fake Tech Park",
                         "address": "Fake Road, Jaipur", "semanticType": "TYPE_WORK"},
-                    "duration": {"startTimestamp": iso(s), "endTimestamp": iso(e)},
+                    "duration": {"startTimestamp": iso(utc(s)), "endTimestamp": iso(utc(e))},
                     "placeConfidence": "HIGH_CONFIDENCE"}})
         day += timedelta(days=1)
 
