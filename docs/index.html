@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HeldBy</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; background: #F7FAF8; color: #123B40; line-height: 1.5; }
+  header { background: #123B40; color: #fff; padding: 20px; }
+  header h1 { margin: 0 0 4px; font-size: 2rem; }
+  main { padding: 16px; max-width: 560px; margin: auto; }
+  .card { background: #fff; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  input[type=file] { font-size: 1rem; margin: 12px 0; width: 100%; }
+  .note { font-size: 0.95rem; color: #38524f; }
+</style>
+<script src="vendor/jszip.min.js"></script>
+</head>
+<body>
+<header>
+  <h1>HeldBy</h1>
+  <div>Your data, explained.</div>
+</header>
+<main>
+  <div class="card">
+    <h2>Choose an export file</h2>
+    <p>Pick a ZIP or JSON file from Google or Spotify. It is read on this device and is not uploaded.</p>
+    <input type="file" id="file" accept=".zip,.json,application/zip,application/json">
+    <div id="result" class="note"></div>
+  </div>
+  <div class="card note">
+    <strong>Privacy:</strong> your file is not sent anywhere. This page is only a web page that loads from GitHub Pages.
+  </div>
+</main>
+<script>
+const result = document.getElementById("file") && document.getElementById("result");
+const MAX_ZIP_BYTES = 200 * 1024 * 1024;
+const MAX_JSON_CHARS = 8 * 1024 * 1024;
+
+function countRows(data, counts) {
+  if (!Array.isArray(data)) return;
+  for (const row of data) {
+    if (!row || typeof row !== "object") continue;
+    if (row.header === "Search" && String(row.title || "").startsWith("Searched for ")) counts.searches++;
+    if (row.master_metadata_track_name || row.trackName) counts.songs++;
+  }
+}
+
+function scanText(text, counts) {
+  if (text.length > MAX_JSON_CHARS) { counts.skipped++; return; }
+  try {
+    countRows(JSON.parse(text), counts);
+  } catch (error) {
+    counts.skipped++;
+  }
+}
+
+async function scanFile(file) {
+  const counts = { searches: 0, songs: 0, skipped: 0, jsonFiles: 0 };
+  const name = file.name.toLowerCase();
+
+  if (name.endsWith(".zip")) {
+    if (typeof JSZip === "undefined") throw new Error("missing-library");
+    if (file.size > MAX_ZIP_BYTES) throw new Error("too-large");
+    const zip = await JSZip.loadAsync(file);
+    const parts = Object.values(zip.files)
+      .filter(f => !f.dir && f.name.toLowerCase().endsWith(".json"));
+    counts.jsonFiles = parts.length;
+    for (const part of parts) {
+      scanText(await part.async("string"), counts);
+    }
+  } else {
+    counts.jsonFiles = 1;
+    scanText(await file.text(), counts);
+  }
+  return counts;
+}
+
+document.getElementById("file").addEventListener("change", async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  result.textContent = "Reading file on this device...";
+  try {
+    const c = await scanFile(file);
+    if (c.jsonFiles === 0) {
+      result.textContent = "This ZIP has no JSON files inside. Choose a ZIP that contains a JSON export.";
+    } else if (c.searches + c.songs === 0) {
+      result.textContent = "No Google Search or Spotify song records were recognized. This does not mean the company has no data about you.";
+    } else {
+      result.innerHTML =
+        "<p>JSON files checked: <strong>" + c.jsonFiles + "</strong></p>" +
+        "<p>Google search entries found: <strong>" + c.searches + "</strong></p>" +
+        "<p>Spotify song entries found: <strong>" + c.songs + "</strong></p>" +
+        "<p>Search words and song titles are not shown.</p>";
+    }
+  } catch (error) {
+    if (error.message === "missing-library") {
+      result.textContent = "ZIP support file is missing. Re-add docs/vendor/jszip.min.js and refresh.";
+    } else if (error.message === "too-large") {
+      result.textContent = "This ZIP is over 200 MB. Choose a smaller file or use the desktop version.";
+    } else {
+      result.textContent = "This file could not be read. It may be damaged or not an export.";
+    }
+  }
+});
+</script>
+</body>
+</html>
