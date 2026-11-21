@@ -1,0 +1,16 @@
+PrivTrace/
+├── app.py                  # main app
+├── requirements.txt
+├── .gitignore
+├── README.md
+├── parsers/
+│   ├── __init__.py
+│   ├── google_parser.py
+│   ├── instagram_parser.py
+│   └── spotify_parser.py
+├── analyzers/
+│   ├── __init__.py
+│   ├── inference.py
+│   └── risk_score.py
+└── sample_data/
+    └── README.md
