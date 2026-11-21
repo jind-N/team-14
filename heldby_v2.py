@@ -230,11 +230,50 @@ def make_pdf():
 
 def show_archive():
     with st.expander("How do I get my archive file?"):
-        st.write("Google: open Google Takeout and select the data you want. "
-                 "Instagram or Facebook: open Accounts Center and look under "
-                 "Your information and permissions for the export option.")
-        st.write("Choose JSON when available. A ZIP containing JSON is fine.")
-        st.caption("General guide. Menus vary by app version.")
+        guide_app = st.selectbox(
+            "Which app is your data in?",
+            ["Google", "Instagram", "Facebook", "Another app"],
+        )
+        if guide_app == "Google":
+            guide_dir = Path(__file__).parent / "docs" / "guides" / "google" / "web"
+            guide_steps = [
+                ("Open Google Takeout",
+                 "In your browser, go to takeout.google.com. Check that the account "
+                 "shown at the top right is the one you want."),
+                ("Pick only My Activity",
+                 "Click 'Deselect all'. Scroll down and tick 'My Activity'. "
+                 "If you see a format button beside it, open it and choose JSON."),
+                ("Choose how to get the file",
+                 "Scroll down and click 'Next step'. Choose a download link by email, "
+                 "'Export once', and the .zip file type."),
+                ("Create the export and bring it back",
+                 "Click 'Create export'. Google emails you when the file is ready. "
+                 "This can take minutes or days. Download the ZIP to this device."),
+            ]
+            st.write("**Google Takeout · computer browser**")
+            for number, (title, text) in enumerate(guide_steps, start=1):
+                st.write(f"**Step {number} of {len(guide_steps)}: {title}**")
+                st.write(text)
+                picture = guide_dir / f"step{number}.png"
+                if picture.exists():
+                    try:
+                        st.image(str(picture))
+                    except Exception:
+                        st.caption("This picture could not be opened.")
+            st.success("Have your ZIP? Close this guide and choose the file just below.")
+            st.caption("Pictures taken by Team 14 on a computer browser. Menus can change.")
+        elif guide_app in ("Instagram", "Facebook"):
+            st.write(
+                "Open Accounts Center, then 'Your information and permissions'. "
+                "Choose the export option, select your profile, and pick JSON."
+            )
+            st.caption("Text guide. Pictures not added yet.")
+        else:
+            st.write(
+                "Open the app's settings and look for 'Privacy', 'Your data', or "
+                "'Download your information'. Choose JSON or CSV if offered."
+            )
+            st.caption("General guide. Menus differ between apps.")
     label = st.text_input("Label for this import", "My account", max_chars=40,
                           help="Use a nickname, not an email or phone number.")
     file = st.file_uploader("Choose a ZIP, JSON, or CSV", key=f"archive_{S.generation}")
