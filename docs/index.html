@@ -3,105 +3,298 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HeldBy</title>
-<style>
-  body { font-family: system-ui, sans-serif; margin: 0; background: #F7FAF8; color: #123B40; line-height: 1.5; }
-  header { background: #123B40; color: #fff; padding: 20px; }
-  header h1 { margin: 0 0 4px; font-size: 2rem; }
-  main { padding: 16px; max-width: 560px; margin: auto; }
-  .card { background: #fff; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
-  input[type=file] { font-size: 1rem; margin: 12px 0; width: 100%; }
-  .note { font-size: 0.95rem; color: #38524f; }
-</style>
+<title>HeldBy — Your data, explained</title>
 <script src="vendor/jszip.min.js"></script>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; background: #F6EFE3; color: #221C14; line-height: 1.5; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 20px; }
+  .perf { height: 12px; background-image: linear-gradient(45deg, #F6EFE3 7px, transparent 7px),
+    linear-gradient(-45deg, #F6EFE3 7px, transparent 7px); background-size: 14px 14px; }
+  .receipt { background: #FFFDF6; border: 3px solid #221C14; border-radius: 6px;
+    box-shadow: 6px 6px 0 #221C14; padding: 26px; position: relative; font-family: "Courier New", monospace; }
+  .receipt h1 { font-size: 2.4rem; letter-spacing: 3px; margin: 6px 0; }
+  .stamp { position: absolute; top: -18px; right: 14px; transform: rotate(9deg);
+    width: 92px; height: 92px; border: 3px solid #E4572E; border-radius: 50%;
+    color: #E4572E; background: rgba(255,253,246,.95); display: flex; align-items: center;
+    justify-content: center; text-align: center; font-weight: 800; font-size: .62rem;
+    line-height: 1.35; outline: 2px dashed #E4572E; outline-offset: -8px; }
+  .tag { background: #FFE066; padding: 1px 8px; border-radius: 4px; font-weight: 700; }
+  .line { border-top: 2px dashed #B9AD97; margin: 12px 0; }
+  .barcode { height: 30px; margin-top: 12px;
+    background: repeating-linear-gradient(90deg, #221C14 0 2px, transparent 2px 5px,
+      #221C14 5px 6px, transparent 6px 9px, #221C14 9px 12px, transparent 12px 14px); }
+  .stickers { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0 22px; }
+  .sticker { border: 2px solid #221C14; border-radius: 12px; box-shadow: 3px 3px 0 #221C14;
+    padding: 7px 13px; font-weight: 700; font-size: .9rem; }
+  .s1 { background: #DFF3EC; transform: rotate(-2deg); } .s2 { background: #FFF3C4; transform: rotate(1.5deg); }
+  .s3 { background: #FFE3D8; transform: rotate(-1deg); }
+  .card { background: #FFFDF6; border: 2px solid #221C14; border-radius: 14px;
+    box-shadow: 5px 5px 0 #221C14; padding: 18px 20px; margin-bottom: 16px; }
+  .card h3 { margin: 0 0 6px; }
+  .prio { display: inline-block; border: 2px solid #221C14; border-radius: 999px;
+    padding: 2px 10px; font-weight: 700; font-size: .8rem; margin-bottom: 8px; }
+  .hi { background: #E4572E; color: #fff; } .med { background: #FFE066; } .low { background: #DFF3EC; }
+  details { border: 2px dashed #B9AD97; border-radius: 12px; padding: 10px 14px;
+    margin: 8px 0; background: #FFFCF4; }
+  summary { font-weight: 700; cursor: pointer; }
+  button, .btn { display: inline-block; background: #221C14; color: #fff; border: 2px solid #221C14;
+    border-radius: 12px; box-shadow: 3px 3px 0 #221C14; padding: 11px 18px;
+    font-weight: 700; font-size: 1rem; cursor: pointer; text-decoration: none; }
+  button:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #221C14; }
+  input[type=file] { display: block; width: 100%; box-sizing: border-box; background: #FFFCF4;
+    border: 2px dashed #221C14; border-radius: 14px; padding: 16px; margin: 10px 0; font-size: 1rem; }
+  .evidence { font-family: "Courier New", monospace; font-size: .85rem; background: #F1EAD9;
+    border-radius: 8px; padding: 8px 10px; margin: 6px 0; }
+  .ok { background: #DFF3EC; } .warn { background: #FFE3D8; }
+  .muted { color: #5A4E3E; font-size: .9rem; }
+  .net { display: flex; align-items: center; gap: 10px; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; background: #1D9E6C; border: 2px solid #221C14; }
+  canvas { display: none; }
+</style>
 </head>
 <body>
-<header>
-  <h1>HeldBy</h1>
-  <div>Your data, explained.</div>
-</header>
-<main>
+<div class="wrap">
+  <div style="position:relative;">
+    <div class="stamp">100% ON<br>THIS DEVICE</div>
+    <div class="perf"></div>
+    <div class="receipt">
+      <div>AUDIT № 001 · TEAM 14 · PRICE: FREE</div>
+      <h1>HELDBY</h1>
+      <div>What do companies know about you?<br>Find out. <span class="tag">Fix it. Verify it.</span></div>
+      <div class="line"></div>
+      <div>NO ACCOUNTS · NO UPLOADS · NO TRACKING</div>
+      <div class="barcode"></div>
+    </div>
+    <div class="perf"></div>
+  </div>
+
+  <div class="stickers">
+    <div class="sticker s1">① pick a file</div>
+    <div class="sticker s2">② see what it shows</div>
+    <div class="sticker s3">③ choose one fix</div>
+  </div>
+
+  <div class="card net"><div class="dot"></div>
+    <div><strong>Network: 0 requests.</strong><br>
+    <span class="muted">Everything runs in this browser tab. Open DevTools → Network and watch: nothing is sent.</span></div>
+  </div>
+
   <div class="card">
-    <h2>Choose an export file</h2>
-    <p>Pick a ZIP or JSON file from Google or Spotify. It is read on this device and is not uploaded.</p>
-    <input type="file" id="file" accept=".zip,.json,application/zip,application/json">
-    <div id="result" class="note"></div>
+    <h3>📁 Check a data export</h3>
+    <p class="muted">Google, Spotify, Facebook or Instagram export — ZIP or JSON. Read on this device, never uploaded.</p>
+    <input type="file" id="archiveFile" accept=".zip,.json">
+    <div id="archiveResult"></div>
   </div>
-  <div class="card note">
-    <strong>Privacy:</strong> your file is not sent anywhere. This page is only a web page that loads from GitHub Pages.
+
+  <div class="card">
+    <h3>📷 Check a photo's hidden tags</h3>
+    <p class="muted">JPEG photos can hide GPS location, camera model and date. We check, clean, and verify.</p>
+    <input type="file" id="photoFile" accept=".jpg,.jpeg,image/jpeg">
+    <div id="photoResult"></div>
   </div>
-</main>
+
+  <div class="card">
+    <h3>🧾 Save your privacy receipt</h3>
+    <p class="muted">A summary of what was found and your chosen actions. Generated locally.</p>
+    <button id="receiptBtn">Download my receipt (.txt)</button>
+  </div>
+
+  <div class="card">
+    <h3>Honest limits</h3>
+    <p class="muted">This shows what an export <em>contains</em> — not current settings, and never proof of misuse.
+    We removed our loan-check feature: no public API exists, and we refuse to fake it.</p>
+  </div>
+</div>
+<canvas id="c"></canvas>
+
 <script>
-const result = document.getElementById("file") && document.getElementById("result");
-const MAX_ZIP_BYTES = 200 * 1024 * 1024;
-const MAX_JSON_CHARS = 8 * 1024 * 1024;
+const $ = id => document.getElementById(id);
+const report = [];
+const MAX_ZIP = 200 * 1024 * 1024, MAX_JSON = 8 * 1024 * 1024;
 
-function countRows(data, counts) {
-  if (!Array.isArray(data)) return;
-  for (const row of data) {
-    if (!row || typeof row !== "object") continue;
-    if (row.header === "Search" && String(row.title || "").startsWith("Searched for ")) counts.searches++;
-    if (row.master_metadata_track_name || row.trackName) counts.songs++;
+/* ---------- archive scanning ---------- */
+const ADVICE = {
+  search:      { g: "Google", t: "The words you searched for", p: "Medium",
+                 e: "MyActivity record → header = 'Search'",
+                 now: "Open myactivity.google.com → filter by Search → review entries.",
+                 week: "Check Web & App Activity auto-delete in Activity controls." },
+  location:    { g: "Google", t: "Places recorded as coordinates", p: "High",
+                 e: "Records.json → latitudeE7 / longitudeE7",
+                 now: "Review saved places in Google Maps Timeline.",
+                 week: "Review Timeline and location permissions on your devices." },
+  songs:       { g: "Spotify", t: "Song titles in your listening history", p: "Medium",
+                 e: "Playback record → track name field",
+                 now: "Decide whether to keep or request removal of this history.",
+                 week: "Ask Spotify Support about deletion options." },
+  country:     { g: "Spotify", t: "Country of connection (not GPS)", p: "Low",
+                 e: "Extended history → conn_country field",
+                 now: "No action needed — this is a coarse signal.",
+                 week: "Review your Spotify privacy settings if it concerns you." },
+  contacts:    { g: "Facebook", t: "Uploaded contact details", p: "High",
+                 e: "contacts_v2 → details → contact_point",
+                 now: "Review uploaded contacts in Accounts Center.",
+                 week: "Turn off contact uploading on each device before deleting." },
+  metaLogin:   { g: "Instagram / Facebook", t: "Sign-in records", p: "Medium",
+                 e: "login history → IP address and time fields",
+                 now: "Accounts Center → Password and security → Where you're logged in.",
+                 week: "Sign out unfamiliar sessions; enable two-factor authentication." }
+};
+
+function countRows(rows, c) {
+  if (!Array.isArray(rows)) return;
+  for (const r of rows) {
+    if (!r || typeof r !== "object") continue;
+    if (r.header === "Search" && String(r.title || "").startsWith("Searched for ")) c.search++;
+    if (r.master_metadata_track_name || r.trackName) c.songs++;
+    if (r.conn_country) c.country++;
   }
 }
-
-function scanText(text, counts) {
-  if (text.length > MAX_JSON_CHARS) { counts.skipped++; return; }
+function countDict(name, obj, c) {
+  const n = name.toLowerCase();
+  const arr = k => Array.isArray(obj[k]) ? obj[k] : [];
+  if (n === "records.json") c.location += arr("locations")
+    .filter(r => Number.isInteger(r.latitudeE7) && Number.isInteger(r.longitudeE7)).length;
+  c.contacts += arr("contacts_v2")
+    .filter(r => Array.isArray(r.details) && r.details.some(d => d && d.contact_point)).length;
+  c.metaLogin += arr("account_history_login_history")
+    .filter(r => r.string_map_data && (r.string_map_data["IP Address"] || r.string_map_data["Time"])).length;
+  c.metaLogin += arr("account_activity_v2")
+    .filter(r => /log ?in/i.test(String(r.action || ""))).length;
+}
+function scanText(name, text, c) {
+  if (text.length > MAX_JSON) { c.skipped++; return; }
   try {
-    countRows(JSON.parse(text), counts);
-  } catch (error) {
-    counts.skipped++;
-  }
+    const data = JSON.parse(text);
+    if (Array.isArray(data)) countRows(data, c);
+    else if (data && typeof data === "object") countDict(name, data, c);
+    else c.skipped++;
+  } catch { c.skipped++; }
 }
 
-async function scanFile(file) {
-  const counts = { searches: 0, songs: 0, skipped: 0, jsonFiles: 0 };
-  const name = file.name.toLowerCase();
-
-  if (name.endsWith(".zip")) {
-    if (typeof JSZip === "undefined") throw new Error("missing-library");
-    if (file.size > MAX_ZIP_BYTES) throw new Error("too-large");
-    const zip = await JSZip.loadAsync(file);
-    const parts = Object.values(zip.files)
-      .filter(f => !f.dir && f.name.toLowerCase().endsWith(".json"));
-    counts.jsonFiles = parts.length;
-    for (const part of parts) {
-      scanText(await part.async("string"), counts);
-    }
-  } else {
-    counts.jsonFiles = 1;
-    scanText(await file.text(), counts);
-  }
-  return counts;
-}
-
-document.getElementById("file").addEventListener("change", async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-  result.textContent = "Reading file on this device...";
+$("archiveFile").addEventListener("change", async ev => {
+  const file = ev.target.files[0]; if (!file) return;
+  const box = $("archiveResult");
+  box.innerHTML = "<p class='muted'>Reading on this device…</p>";
+  const c = { search:0, location:0, songs:0, country:0, contacts:0, metaLogin:0, skipped:0 };
   try {
-    const c = await scanFile(file);
-    if (c.jsonFiles === 0) {
-      result.textContent = "This ZIP has no JSON files inside. Choose a ZIP that contains a JSON export.";
-    } else if (c.searches + c.songs === 0) {
-      result.textContent = "No Google Search or Spotify song records were recognized. This does not mean the company has no data about you.";
+    if (file.name.toLowerCase().endsWith(".zip")) {
+      if (typeof JSZip === "undefined") throw new Error("lib");
+      if (file.size > MAX_ZIP) throw new Error("big");
+      const zip = await JSZip.loadAsync(file);
+      for (const part of Object.values(zip.files)) {
+        if (part.dir || !part.name.toLowerCase().endsWith(".json")) continue;
+        scanText(part.name, await part.async("string"), c);
+      }
     } else {
-      result.innerHTML =
-        "<p>JSON files checked: <strong>" + c.jsonFiles + "</strong></p>" +
-        "<p>Google search entries found: <strong>" + c.searches + "</strong></p>" +
-        "<p>Spotify song entries found: <strong>" + c.songs + "</strong></p>" +
-        "<p>Search words and song titles are not shown.</p>";
+      scanText(file.name, await file.text(), c);
     }
-  } catch (error) {
-    if (error.message === "missing-library") {
-      result.textContent = "ZIP support file is missing. Re-add docs/vendor/jszip.min.js and refresh.";
-    } else if (error.message === "too-large") {
-      result.textContent = "This ZIP is over 200 MB. Choose a smaller file or use the desktop version.";
-    } else {
-      result.textContent = "This file could not be read. It may be damaged or not an export.";
-    }
+  } catch (e) {
+    box.innerHTML = "<p class='warn card'>Couldn't read this file. Try a smaller JSON, or a ZIP under 200 MB.</p>";
+    return;
   }
+  const hits = Object.keys(ADVICE).filter(k => c[k] > 0);
+  if (!hits.length) {
+    box.innerHTML = "<p class='ok card'>🎉 Nothing found in the formats we check. " +
+      "That's good — but it doesn't prove the company holds nothing.</p>";
+    return;
+  }
+  box.innerHTML = hits.map(k => {
+    const a = ADVICE[k];
+    report.push(`${a.g}: ${a.t} — ${c[k]} record(s). Evidence: ${a.e}. Do now: ${a.now}`);
+    return `<div class="card">
+      <span class="prio ${a.p === "High" ? "hi" : a.p === "Medium" ? "med" : "low"}">${a.p} priority</span>
+      <h3>${a.g} · ${a.t}</h3>
+      <p><strong>${c[k]}</strong> matching record(s)</p>
+      <details><summary>How do we know?</summary><div class="evidence">${a.e}</div>
+      <p class="muted">Found in your file. We never display the private values themselves.</p></details>
+      <details open><summary>What you can do</summary>
+      <p><strong>Do now · 2 min:</strong> ${a.now}</p>
+      <p><strong>This week · 5 min:</strong> ${a.week}</p></details>
+    </div>`;
+  }).join("") + (c.skipped ? `<p class="muted">${c.skipped} file(s) not readable or not recognized — shown as not checked, never "safe".</p>` : "");
 });
+
+/* ---------- photo EXIF: detect, clean, verify ---------- */
+function parseExif(buf) {
+  const dv = new DataView(buf);
+  if (dv.byteLength < 4 || dv.getUint16(0) !== 0xFFD8) return null;
+  let off = 2, tiff = -1;
+  while (off + 4 <= dv.byteLength) {
+    const m = dv.getUint16(off);
+    if ((m & 0xFF00) !== 0xFF00 || m === 0xFFDA) break;
+    if (m === 0xFFE1 && dv.getUint32(off + 4) === 0x45786966 && dv.getUint16(off + 8) === 0) { tiff = off + 10; break; }
+    off += 2 + dv.getUint16(off + 2);
+  }
+  if (tiff < 0) return { exif: false, gps: false, camera: false, datetime: false };
+  const le = dv.getUint16(tiff) === 0x4949;
+  const u16 = o => dv.getUint16(tiff + o, le), u32 = o => dv.getUint32(tiff + o, le);
+  let gps = false; const tags = new Set();
+  (function walk(base, depth) {
+    if (!base || depth > 3 || base + 2 > dv.byteLength - tiff) return;
+    const n = u16(base);
+    for (let i = 0; i < n; i++) {
+      const e = base + 2 + i * 12;
+      if (e + 12 > dv.byteLength - tiff) break;
+      const tag = u16(e); tags.add(tag);
+      if (tag === 0x8825) { gps = true; walk(u32(e + 8), depth + 1); }
+      if (tag === 0x8769) walk(u32(e + 8), depth + 1);
+    }
+  })(u32(4), 0);
+  return { exif: true, gps,
+    camera: tags.has(0x010F) || tags.has(0x0110),
+    datetime: tags.has(0x0132) || tags.has(0x9003) || tags.has(0x9004) };
+}
+
+$("photoFile").addEventListener("change", ev => {
+  const file = ev.target.files[0]; if (!file) return;
+  const box = $("photoResult");
+  const reader = new FileReader();
+  reader.onload = () => {
+    const before = parseExif(reader.result);
+    if (!before) { box.innerHTML = "<p class='warn card'>Not a readable JPEG photo.</p>"; return; }
+    const tags = [before.gps && "📍 GPS location", before.camera && "📷 Camera / phone model",
+      before.datetime && "🕐 Date & time"].filter(Boolean);
+    if (!tags.length) {
+      box.innerHTML = "<p class='ok card'>🎉 No GPS, camera, or date tags found in this photo.</p>";
+      return;
+    }
+    box.innerHTML = `<div class="warn card"><strong>Before:</strong> found ${tags.join(", ")}</div>
+      <button id="cleanBtn">Save cleaned copy</button><div id="after"></div>`;
+    $("cleanBtn").onclick = () => {
+      const img = new Image();
+      img.onload = () => {
+        const cv = $("c"); cv.width = img.width; cv.height = img.height;
+        cv.getContext("2d").drawImage(img, 0, 0);
+        cv.toBlob(blob => {
+          const url = URL.createObjectURL(blob);
+          blob.arrayBuffer().then(cleanBuf => {
+            const after = parseExif(cleanBuf);
+            const gone = after && !after.gps && !after.camera && !after.datetime;
+            $("after").innerHTML =
+              `<p><a class="btn" href="${url}" download="heldby-clean.jpg">⬇ Download cleaned copy</a></p>` +
+              (gone
+                ? `<div class="ok card">✔ <strong>Verified:</strong> we re-checked the cleaned copy — no GPS, camera, or date tags found. Your original was not changed.</div>`
+                : `<div class="warn card">Some tags may remain — check before sharing.</div>`);
+            report.push("Photo: hidden tags found → cleaned copy created → re-verified: tags gone.");
+          });
+        }, "image/jpeg", 0.92);
+      };
+      img.src = URL.createObjectURL(file);
+    };
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+/* ---------- receipt ---------- */
+$("receiptBtn").onclick = () => {
+  const body = ["HELDBY — MY PRIVACY RECEIPT", new Date().toLocaleString(),
+    "Processed on this device. Nothing uploaded.", ""]
+    .concat(report.length ? report : ["No files checked yet."])
+    .concat(["", "Note: findings show what a file contains, not current account settings."]);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([body.join("\n")], { type: "text/plain" }));
+  a.download = "heldby-receipt.txt"; a.click();
+};
 </script>
 </body>
 </html>
